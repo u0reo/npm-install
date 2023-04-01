@@ -3,9 +3,7 @@ const utils = action.utils
 
 describe('misc', () => {
   it('exports a function', () => {
-    expect(action)
-      .to.have.property('npmInstallAction')
-      .and.be.a('function')
+    expect(action).to.have.property('npmInstallAction').and.be.a('function')
     expect(action).to.have.property('utils')
   })
 
@@ -44,7 +42,7 @@ describe('misc', () => {
     saveCache.resolves()
 
     await action.npmInstallAction()
-    expect(install, 'install was called').to.have.been.calledOnce
+    expect(install, 'install was called').to.have.not.been.called
     expect(saveCache, 'cache remains the same').to.have.not.been.called
     expect(
       restoreCache,

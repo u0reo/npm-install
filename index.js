@@ -27,7 +27,7 @@ const getInputBool = (name, defaultValue = false) => {
   return defaultValue
 }
 
-const restoreCachedNpm = npmCache => {
+const restoreCachedNpm = (npmCache) => {
   console.log('trying to restore cached NPM modules')
   return cache
     .restoreCache(
@@ -35,23 +35,23 @@ const restoreCachedNpm = npmCache => {
       npmCache.primaryKey,
       npmCache.restoreKeys
     )
-    .then(cache => {
+    .then((cache) => {
       console.log('npm cache hit', cache)
       return cache
     })
-    .catch(e => {
+    .catch((e) => {
       console.warn(
         `caught error ${e} retrieving cache, installing from scratch`
       )
     })
 }
 
-const saveCachedNpm = npmCache => {
+const saveCachedNpm = (npmCache) => {
   console.log('saving NPM modules')
 
   return cache
     .saveCache(npmCache.inputPaths, npmCache.primaryKey)
-    .catch(err => {
+    .catch((err) => {
       // don't throw an error if cache already exists, which may happen due to
       // race conditions
       if (err instanceof cache.ReserveCacheError) {
@@ -97,7 +97,7 @@ const install = (opts = {}) => {
 
   if (shouldUseYarn) {
     console.log('installing NPM dependencies using Yarn')
-    return io.which('yarn', true).then(yarnPath => {
+    return io.which('yarn', true).then((yarnPath) => {
       console.log('yarn at "%s"', yarnPath)
 
       const args = shouldUsePackageLock ? ['--frozen-lockfile'] : []
@@ -109,7 +109,7 @@ const install = (opts = {}) => {
   } else {
     console.log('installing NPM dependencies')
 
-    return io.which('npm', true).then(npmPath => {
+    return io.which('npm', true).then((npmPath) => {
       console.log('npm at "%s"', npmPath)
 
       const args = shouldUsePackageLock ? ['ci'] : ['install']
@@ -122,7 +122,7 @@ const install = (opts = {}) => {
 const getPlatformAndArch = () => `${process.platform}-${process.arch}`
 const getNow = () => new Date()
 
-const getLockFilename = usePackageLock => workingDirectory => {
+const getLockFilename = (usePackageLock) => (workingDirectory) => {
   const packageFilename = path.join(workingDirectory, 'package.json')
   const yarnFilename = path.join(workingDirectory, 'yarn.lock')
   const useYarn = fs.existsSync(yarnFilename)
@@ -174,10 +174,7 @@ const getCacheParams = ({
       String(now.getMonth()),
       lockHash
     )
-    restoreKeys = [
-      primaryKeySegments.join('-'),
-      primaryKeySegments.slice(0, -1).join('-')
-    ]
+    restoreKeys = [primaryKeySegments.join('-')]
   } else {
     primaryKeySegments.push(lockHash)
     restoreKeys = [primaryKeySegments.join('-')]
@@ -222,7 +219,7 @@ const installInOneFolder = ({
     installCommand
   }
 
-  return api.utils.restoreCachedNpm(NPM_CACHE).then(npmCacheHit => {
+  return api.utils.restoreCachedNpm(NPM_CACHE).then((npmCacheHit) => {
     if (npmCacheHit) {
       return
     }
@@ -245,7 +242,7 @@ const npmInstallAction = async () => {
 
   const workingDirectories = wds
     .split('\n')
-    .map(s => s.trim())
+    .map((s) => s.trim())
     .filter(Boolean)
 
   core.debug(`iterating over working ${workingDirectories.length} folder(s)`)
@@ -287,7 +284,7 @@ if (!module.parent) {
     .then(() => {
       console.log('all done, exiting')
     })
-    .catch(error => {
+    .catch((error) => {
       console.log(error)
       core.setFailed(error.message)
     })

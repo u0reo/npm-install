@@ -2,18 +2,21 @@
 
 > GitHub Action for install npm dependencies with caching without any configuration
 
+**This fork caches node_modules.**
+It is recommended to cache the .npm in setup-node in case the lockfile changes.
+
 ## CI
 
 <!-- prettier-ignore-start -->
 Example | Status
 --- | ---
-[main](.github/workflows/main.yml) | ![this repo](https://github.com/bahmutov/npm-install/workflows/main/badge.svg?branch=master)
-[basic](.github/workflows/example-basic.yml) | ![basic example](https://github.com/bahmutov/npm-install/workflows/example-basic/badge.svg?branch=master)
-[shrinkwrap](.github/workflows/example-shrinkwrap.yml) | ![shrinkwrap example](https://github.com/bahmutov/npm-install/workflows/example-shrinkwrap/badge.svg?branch=master)
-[Yarn](.github/workflows/example-yarn.yml) | ![yarn example](https://github.com/bahmutov/npm-install/workflows/example-yarn/badge.svg?branch=master)
-[without lock file](.github/workflows/example-without-lock-file.yml) | ![without lockfile example](https://github.com/bahmutov/npm-install/workflows/example-without-lock-file/badge.svg?branch=master)
-[subfolders](.github/workflows/example-subfolders.yml) | ![subfolders example](https://github.com/bahmutov/npm-install/workflows/example-subfolders/badge.svg?branch=master)
-[Node version](.github/workflows/example-node-version.yml) | ![Node version example](https://github.com/bahmutov/npm-install/workflows/example-node-version/badge.svg?branch=master)
+[main](.github/workflows/main.yml) | ![this repo](https://github.com/u0reo/npm-install/workflows/main/badge.svg?branch=master)
+[basic](.github/workflows/example-basic.yml) | ![basic example](https://github.com/u0reo/npm-install/workflows/example-basic/badge.svg?branch=master)
+[shrinkwrap](.github/workflows/example-shrinkwrap.yml) | ![shrinkwrap example](https://github.com/u0reo/npm-install/workflows/example-shrinkwrap/badge.svg?branch=master)
+[Yarn](.github/workflows/example-yarn.yml) | ![yarn example](https://github.com/u0reo/npm-install/workflows/example-yarn/badge.svg?branch=master)
+[without lock file](.github/workflows/example-without-lock-file.yml) | ![without lockfile example](https://github.com/u0reo/npm-install/workflows/example-without-lock-file/badge.svg?branch=master)
+[subfolders](.github/workflows/example-subfolders.yml) | ![subfolders example](https://github.com/u0reo/npm-install/workflows/example-subfolders/badge.svg?branch=master)
+[Node version](.github/workflows/example-node-version.yml) | ![Node version example](https://github.com/u0reo/npm-install/workflows/example-node-version/badge.svg?branch=master)
 <!-- prettier-ignore-end -->
 
 ## Examples
@@ -22,7 +25,7 @@ Example | Status
 
 This example should cover 95% of use cases.
 
-If you use `npm ci` or `yarn --frozen-lockfile` on CI to install NPM dependencies - this Action is for you. Simply use it, and your NPM modules will be installed and the folder `~/.npm` or `~/.cache/yarn` will be cached. Typical use:
+If you use `npm ci` or `yarn --frozen-lockfile` on CI to install NPM dependencies - this Action is for you. Simply use it, and your NPM modules will be installed and the folder `./node_modules` will be cached. Typical use:
 
 ```yml
 name: main
@@ -33,7 +36,10 @@ jobs:
     name: Build and test
     steps:
       - uses: actions/checkout@v3
-      - uses: bahmutov/npm-install@v1
+      - uses: actions/setup-node@v3
+        with:
+          cache: npm
+      - uses: u0reo/npm-install@v1
       - run: npm t
 ```
 
@@ -61,11 +67,14 @@ jobs:
     name: Build and test
     steps:
       - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          cache: npm
 
-      - uses: bahmutov/npm-install@v1
+      - uses: u0reo/npm-install@v1
         with:
           working-directory: app1
-      - uses: bahmutov/npm-install@v1
+      - uses: u0reo/npm-install@v1
         with:
           working-directory: app2
 
@@ -91,7 +100,7 @@ jobs:
     name: Build and test
     steps:
       - uses: actions/checkout@v3
-      - uses: bahmutov/npm-install@v1
+      - uses: u0reo/npm-install@v1
         with:
           working-directory: |
             app1
@@ -103,7 +112,7 @@ jobs:
 By default, this action will use a lock file like `package-lock.json`, `npm-shrinkwrap.json` or `yarn.lock`. You can set `useLockFile: false` to use just `package.json` which might be better for [building libraries](https://twitter.com/mikeal/status/1202298796274700288).
 
 ```yml
-- uses: bahmutov/npm-install@v1
+- uses: u0reo/npm-install@v1
   with:
     useLockFile: false
 ```
@@ -113,7 +122,7 @@ By default, this action will use a lock file like `package-lock.json`, `npm-shri
 By default, yarn and npm dependencies will be cached according to the exact hash of the lockfile (if enabled) or the `package.json`. This will cause cache misses when the dependencies change, which can be slower than re-installing for big projects. To re-use the cache across runs with different lockfiles/dependencies, you can enable the `useRollingCache` option, which will restore the cache from more keys. It will expire the cache once a month to keep it from growing too large, see the Cache Snowballing & Rolling Cache expiry below.
 
 ```yml
-- uses: bahmutov/npm-install@v1
+- uses: u0reo/npm-install@v1
   with:
     useRollingCache: true
 ```
@@ -125,7 +134,7 @@ By default, yarn and npm dependencies will be cached according to the exact hash
 You can install just the production dependencies (without installing dev dependencies) by setting an environment variable `NODE_ENV` variable
 
 ```yml
-- uses: bahmutov/npm-install@v1
+- uses: u0reo/npm-install@v1
   env:
     NODE_ENV: production
 ```
@@ -135,7 +144,7 @@ You can install just the production dependencies (without installing dev depende
 You can use your own install command
 
 ```yml
-- uses: bahmutov/npm-install@v1
+- uses: u0reo/npm-install@v1
   with:
     install-command: yarn --frozen-lockfile --silent
 ```
@@ -153,7 +162,19 @@ If you need to use a specific Node version, use the []() before installing the d
   - uses: actions/setup-node@v3
     with:
       node-version: 16
-  - uses: bahmutov/npm-install@v1
+      cache: npm
+  - uses: u0reo/npm-install@v1
+```
+
+```yml
+- uses: actions/checkout@v3
+  # pick the Node version by package.json to use and install it
+  # https://github.com/actions/setup-node
+  - uses: actions/setup-node@v3
+    with:
+      node-version-file: package.json
+      cache: npm
+  - uses: u0reo/npm-install@v1
 ```
 
 See [example-node-version.yml](./.github/workflows/example-node-version.yml)

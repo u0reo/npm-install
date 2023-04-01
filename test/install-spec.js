@@ -7,18 +7,18 @@ const path = require('path')
 const action = require('../index')
 
 describe('install command', () => {
-  beforeEach(function() {
+  beforeEach(function () {
     this.exec = sandbox.stub(exec, 'exec').resolves()
   })
 
   // by resolving we normalize the folder on Linux and Windows CI
   const workingDirectory = path.resolve('/current/working/directory')
-  const npmCacheFolder = '/path/to/user/cache'
+  const npmCacheFolder = path.join(workingDirectory, 'node_modules')
 
   context('using Yarn', () => {
     const pathToYarn = '/path/to/yarn'
 
-    it('uses absolute working directory', async function() {
+    it('uses absolute working directory', async function () {
       const opts = {
         useYarn: true,
         usePackageLock: true,
@@ -26,15 +26,11 @@ describe('install command', () => {
         workingDirectory: 'directory',
         npmCacheFolder
       }
-      sandbox
-        .stub(io, 'which')
-        .withArgs('yarn')
-        .resolves(pathToYarn)
+      sandbox.stub(io, 'which').withArgs('yarn').resolves(pathToYarn)
       sandbox
         .stub(path, 'resolve')
         .withArgs('directory')
         .returns(workingDirectory)
-      sandbox.stub(core, 'exportVariable')
 
       await action.utils.install(opts)
       expect(
@@ -45,23 +41,16 @@ describe('install command', () => {
         ['--frozen-lockfile'],
         { cwd: workingDirectory }
       )
-      expect(
-        core.exportVariable,
-        'npm_config_cache was set'
-      ).to.have.been.calledOnceWithExactly('npm_config_cache', npmCacheFolder)
     })
 
-    it('and lock file', async function() {
+    it('and lock file', async function () {
       const opts = {
         useYarn: true,
         usePackageLock: true,
         workingDirectory,
         npmCacheFolder
       }
-      sandbox
-        .stub(io, 'which')
-        .withArgs('yarn')
-        .resolves(pathToYarn)
+      sandbox.stub(io, 'which').withArgs('yarn').resolves(pathToYarn)
       await action.utils.install(opts)
       expect(this.exec).to.have.been.calledOnceWithExactly(
         quote(pathToYarn),
@@ -70,17 +59,14 @@ describe('install command', () => {
       )
     })
 
-    it('without lock file', async function() {
+    it('without lock file', async function () {
       const opts = {
         useYarn: true,
         usePackageLock: false,
         workingDirectory,
         npmCacheFolder
       }
-      sandbox
-        .stub(io, 'which')
-        .withArgs('yarn')
-        .resolves(pathToYarn)
+      sandbox.stub(io, 'which').withArgs('yarn').resolves(pathToYarn)
       await action.utils.install(opts)
       expect(this.exec).to.have.been.calledOnceWithExactly(
         quote(pathToYarn),
@@ -93,11 +79,7 @@ describe('install command', () => {
   context('using NPM', () => {
     const pathToNpm = '/path/to/npm'
 
-    beforeEach(function() {
-      this.exportVariable = sandbox.stub(core, 'exportVariable')
-    })
-
-    it('uses absolute working directory', async function() {
+    it('uses absolute working directory', async function () {
       const opts = {
         useYarn: false,
         usePackageLock: true,
@@ -105,10 +87,7 @@ describe('install command', () => {
         workingDirectory: 'directory',
         npmCacheFolder
       }
-      sandbox
-        .stub(io, 'which')
-        .withArgs('npm')
-        .resolves(pathToNpm)
+      sandbox.stub(io, 'which').withArgs('npm').resolves(pathToNpm)
       sandbox
         .stub(path, 'resolve')
         .withArgs('directory')
@@ -124,23 +103,15 @@ describe('install command', () => {
       })
     })
 
-    it('installs using lock file', async function() {
+    it('installs using lock file', async function () {
       const opts = {
         useYarn: false,
         usePackageLock: true,
         workingDirectory,
         npmCacheFolder
       }
-      sandbox
-        .stub(io, 'which')
-        .withArgs('npm')
-        .resolves(pathToNpm)
+      sandbox.stub(io, 'which').withArgs('npm').resolves(pathToNpm)
       await action.utils.install(opts)
-      expect(
-        this.exportVariable,
-        'export npm_config_cache was called'
-      ).to.be.calledOnceWithExactly('npm_config_cache', npmCacheFolder)
-      expect(this.exportVariable).to.have.been.calledBefore(this.exec)
       expect(this.exec).to.have.been.calledOnceWithExactly(
         quote(pathToNpm),
         ['ci'],
@@ -148,23 +119,15 @@ describe('install command', () => {
       )
     })
 
-    it('installs without a lock file', async function() {
+    it('installs without a lock file', async function () {
       const opts = {
         useYarn: false,
         usePackageLock: false,
         workingDirectory,
         npmCacheFolder
       }
-      sandbox
-        .stub(io, 'which')
-        .withArgs('npm')
-        .resolves(pathToNpm)
+      sandbox.stub(io, 'which').withArgs('npm').resolves(pathToNpm)
       await action.utils.install(opts)
-      expect(
-        this.exportVariable,
-        'export npm_config_cache was called'
-      ).to.be.calledOnceWithExactly('npm_config_cache', npmCacheFolder)
-      expect(this.exportVariable).to.have.been.calledBefore(this.exec)
       expect(this.exec).to.have.been.calledOnceWithExactly(
         quote(pathToNpm),
         ['install'],
@@ -174,7 +137,7 @@ describe('install command', () => {
   })
 
   context('using custom command', () => {
-    it('calls exec directly', async function() {
+    it('calls exec directly', async function () {
       const opts = {
         useYarn: true,
         usePackageLock: true,
@@ -183,8 +146,6 @@ describe('install command', () => {
         npmCacheFolder,
         installCommand: 'my install command'
       }
-
-      sandbox.stub(core, 'exportVariable')
 
       sandbox
         .stub(path, 'resolve')
@@ -198,11 +159,6 @@ describe('install command', () => {
       ).to.have.been.calledOnceWithExactly('my install command', [], {
         cwd: workingDirectory
       })
-
-      expect(
-        core.exportVariable,
-        'npm_config_cache was set'
-      ).to.have.been.calledOnceWithExactly('npm_config_cache', npmCacheFolder)
     })
   })
 })

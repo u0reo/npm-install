@@ -29,6 +29,8 @@ const getInputBool = (name, defaultValue = false) => {
 
 const restoreCachedNpm = (npmCache) => {
   console.log('trying to restore cached NPM modules')
+  console.log(npmCache)
+
   return cache
     .restoreCache(
       npmCache.inputPaths,
@@ -48,6 +50,7 @@ const restoreCachedNpm = (npmCache) => {
 
 const saveCachedNpm = (npmCache) => {
   console.log('saving NPM modules')
+  console.log(npmCache)
 
   return cache
     .saveCache(npmCache.inputPaths, npmCache.primaryKey)

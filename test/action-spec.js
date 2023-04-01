@@ -54,8 +54,7 @@ describe('action', () => {
 
       expect(this.restoreCache).to.be.calledOnceWithExactly(
         yarnCachePaths,
-        cacheKey,
-        undefined
+        cacheKey
       )
       expect(this.exec).to.be.calledOnceWithExactly(
         quote(pathToYarn),
@@ -105,8 +104,7 @@ describe('action', () => {
 
         expect(this.restoreCache).to.be.calledOnceWithExactly(
           npmCachePaths,
-          cacheKey,
-          undefined
+          cacheKey
         )
         expect(this.exec).to.be.calledOnceWithExactly(
           quote(pathToNpm),
@@ -139,8 +137,7 @@ describe('action', () => {
 
         expect(this.restoreCache).to.be.calledOnceWithExactly(
           npmCachePaths,
-          cacheKey,
-          undefined
+          cacheKey
         )
         expect(this.exec).to.be.calledOnceWithExactly(
           quote(pathToNpm),
@@ -179,15 +176,12 @@ describe('action', () => {
       const saveCache = sandbox.stub(utils, 'saveCachedNpm')
       await action.npmInstallAction()
       // caching based on the file package.json in the current working directory
-      expect(restoreCache).to.have.been.calledOnceWithExactly({
-        inputPaths: [
-          isWindows
-            ? 'D:\\path\\to\\mock\\cwd\\node_modules'
-            : '/path/to/mock/cwd/node_modules'
-        ],
-        primaryKey: 'npm-platform-arch-hash-from-package-json',
-        restoreKeys: undefined
-      })
+      expect(restoreCache).to.have.been.calledOnceWithExactly(
+        'npm-platform-arch-hash-from-package-json',
+        isWindows
+          ? 'D:\\path\\to\\mock\\cwd\\node_modules'
+          : '/path/to/mock/cwd/node_modules'
+      )
 
       expect(this.exec).to.not.have.been.called
       expect(saveCache, 'cache was hit').to.not.have.been.called
@@ -200,17 +194,12 @@ describe('action', () => {
         .resolves(cacheHit)
       const saveCache = sandbox.stub(utils, 'saveCachedNpm')
       await action.npmInstallAction()
-      // caching based on the file package.json in the current working directory
-      const cacheParams = {
-        inputPaths: [
-          isWindows
-            ? 'D:\\path\\to\\mock\\cwd\\node_modules'
-            : '/path/to/mock/cwd/node_modules'
-        ],
-        primaryKey: 'npm-platform-arch-hash-from-package-json',
-        restoreKeys: undefined
-      }
-      expect(restoreCache).to.have.been.calledOnceWithExactly(cacheParams)
+      expect(restoreCache).to.have.been.calledOnceWithExactly(
+        'npm-platform-arch-hash-from-package-json',
+        isWindows
+          ? 'D:\\path\\to\\mock\\cwd\\node_modules'
+          : '/path/to/mock/cwd/node_modules'
+      )
 
       expect(this.exec).to.have.been.calledOnceWithExactly(
         quote(pathToNpm),
@@ -223,7 +212,12 @@ describe('action', () => {
       expect(
         saveCache,
         'new cache needs to be saved'
-      ).to.have.been.calledOnceWithExactly(cacheParams)
+      ).to.have.been.calledOnceWithExactly(
+        'npm-platform-arch-hash-from-package-json',
+        isWindows
+          ? 'D:\\path\\to\\mock\\cwd\\node_modules'
+          : '/path/to/mock/cwd/node_modules'
+      )
     })
   })
 
@@ -296,8 +290,7 @@ describe('action', () => {
 
       expect(this.restoreCache).to.be.calledOnceWithExactly(
         yarnCachePaths,
-        cacheKey,
-        undefined
+        cacheKey
       )
       expect(this.exec).to.be.calledOnceWithExactly(
         quote(pathToYarn),
@@ -344,17 +337,11 @@ describe('action', () => {
         }
       )
 
-      const args = {
-        inputPaths: [
-          isWindows
-            ? 'D:\\path\\to\\mock\\cwd\\node_modules'
-            : '/path/to/mock/cwd/node_modules'
-        ],
-        primaryKey: 'npm-platform-arch-hash-from-package-json',
-        restoreKeys: undefined
-      }
       expect(saveCache, 'cache was hit').to.have.been.calledOnceWithExactly(
-        args
+        'npm-platform-arch-hash-from-package-json',
+        isWindows
+          ? 'D:\\path\\to\\mock\\cwd\\node_modules'
+          : '/path/to/mock/cwd/node_modules'
       )
     })
 

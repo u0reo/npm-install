@@ -2956,16 +2956,11 @@ const getInputBool = (name, defaultValue = false) => {
   return defaultValue
 }
 
-const restoreCachedNpm = (npmCache) => {
+const restoreCachedNpm = (primaryKey, inputPath) => {
   console.log('trying to restore cached NPM modules')
-  console.log(npmCache)
 
   return cache
-    .restoreCache(
-      npmCache.inputPaths,
-      npmCache.primaryKey,
-      npmCache.restoreKeys
-    )
+    .restoreCache([inputPath], primaryKey)
     .then((cache) => {
       console.log('npm cache hit', cache)
       return cache
@@ -2977,23 +2972,20 @@ const restoreCachedNpm = (npmCache) => {
     })
 }
 
-const saveCachedNpm = (npmCache) => {
+const saveCachedNpm = (primaryKey, inputPath) => {
   console.log('saving NPM modules')
-  console.log(npmCache)
 
-  return cache
-    .saveCache(npmCache.inputPaths, npmCache.primaryKey)
-    .catch((err) => {
-      // don't throw an error if cache already exists, which may happen due to
-      // race conditions
-      if (err instanceof cache.ReserveCacheError) {
-        console.warn(err.message)
-        return -1
-      }
+  return cache.saveCache([inputPath], primaryKey).catch((err) => {
+    // don't throw an error if cache already exists, which may happen due to
+    // race conditions
+    if (err instanceof cache.ReserveCacheError) {
+      console.warn(err.message)
+      return -1
+    }
 
-      // do not rethrow here or github actions will break (https://github.com/bahmutov/npm-install/issues/142)
-      console.warn(`saving npm cache failed with ${err}, continuing...`)
-    })
+    // do not rethrow here or github actions will break (https://github.com/bahmutov/npm-install/issues/142)
+    console.warn(`saving npm cache failed with ${err}, continuing...`)
+  })
 }
 
 const hasOption = (name, o) => name in o
@@ -3085,17 +3077,11 @@ const getLockFilename = (usePackageLock) => (workingDirectory) => {
   return result
 }
 
-const getCacheParams = ({
-  useYarn,
-  useRollingCache,
-  npmCacheFolder,
-  lockHash
-}) => {
+const getCachePrimaryKey = ({ useYarn, useRollingCache, lockHash }) => {
   const platformAndArch = api.utils.getPlatformAndArch()
   core.debug(`platform and arch ${platformAndArch}`)
   const primaryKeySegments = [platformAndArch]
 
-  let inputPaths = [npmCacheFolder]
   primaryKeySegments.unshift(useYarn ? 'yarn' : 'npm')
 
   if (useRollingCache) {
@@ -3109,11 +3095,7 @@ const getCacheParams = ({
     primaryKeySegments.push(lockHash)
   }
 
-  return {
-    primaryKey: primaryKeySegments.join('-'),
-    inputPaths,
-    restoreKeys: undefined
-  }
+  return primaryKeySegments.join('-')
 }
 
 const installInOneFolder = ({
@@ -3139,10 +3121,9 @@ const installInOneFolder = ({
 
   const NPM_CACHE_FOLDER = path.join(workingDirectory, 'node_modules')
 
-  const NPM_CACHE = getCacheParams({
+  const PRIMARY_KEY = getCachePrimaryKey({
     useYarn: lockInfo.useYarn,
     useRollingCache,
-    npmCacheFolder: NPM_CACHE_FOLDER,
     lockHash
   })
 
@@ -3154,15 +3135,17 @@ const installInOneFolder = ({
     installCommand
   }
 
-  return api.utils.restoreCachedNpm(NPM_CACHE).then((npmCacheHit) => {
-    if (npmCacheHit) {
-      return
-    }
+  return api.utils
+    .restoreCachedNpm(PRIMARY_KEY, NPM_CACHE_FOLDER)
+    .then((npmCacheHit) => {
+      if (npmCacheHit) {
+        return
+      }
 
-    return api.utils.install(opts).then(() => {
-      return api.utils.saveCachedNpm(NPM_CACHE)
+      return api.utils.install(opts).then(() => {
+        return api.utils.saveCachedNpm(PRIMARY_KEY, NPM_CACHE_FOLDER)
+      })
     })
-  })
 }
 
 const npmInstallAction = async () => {

@@ -55,7 +55,7 @@ describe('action', () => {
       expect(this.restoreCache).to.be.calledOnceWithExactly(
         yarnCachePaths,
         cacheKey,
-        [cacheKey]
+        undefined
       )
       expect(this.exec).to.be.calledOnceWithExactly(
         quote(pathToYarn),
@@ -106,7 +106,7 @@ describe('action', () => {
         expect(this.restoreCache).to.be.calledOnceWithExactly(
           npmCachePaths,
           cacheKey,
-          [cacheKey]
+          undefined
         )
         expect(this.exec).to.be.calledOnceWithExactly(
           quote(pathToNpm),
@@ -140,7 +140,7 @@ describe('action', () => {
         expect(this.restoreCache).to.be.calledOnceWithExactly(
           npmCachePaths,
           cacheKey,
-          [cacheKey]
+          undefined
         )
         expect(this.exec).to.be.calledOnceWithExactly(
           quote(pathToNpm),
@@ -186,7 +186,7 @@ describe('action', () => {
             : '/path/to/mock/cwd/node_modules'
         ],
         primaryKey: 'npm-platform-arch-hash-from-package-json',
-        restoreKeys: ['npm-platform-arch-hash-from-package-json']
+        restoreKeys: undefined
       })
 
       expect(this.exec).to.not.have.been.called
@@ -208,7 +208,7 @@ describe('action', () => {
             : '/path/to/mock/cwd/node_modules'
         ],
         primaryKey: 'npm-platform-arch-hash-from-package-json',
-        restoreKeys: ['npm-platform-arch-hash-from-package-json']
+        restoreKeys: undefined
       }
       expect(restoreCache).to.have.been.calledOnceWithExactly(cacheParams)
 
@@ -297,7 +297,7 @@ describe('action', () => {
       expect(this.restoreCache).to.be.calledOnceWithExactly(
         yarnCachePaths,
         cacheKey,
-        ['yarn-platform-arch-2020-1-hash-from-yarn-lock-file']
+        undefined
       )
       expect(this.exec).to.be.calledOnceWithExactly(
         quote(pathToYarn),
@@ -351,7 +351,7 @@ describe('action', () => {
             : '/path/to/mock/cwd/node_modules'
         ],
         primaryKey: 'npm-platform-arch-hash-from-package-json',
-        restoreKeys: ['npm-platform-arch-hash-from-package-json']
+        restoreKeys: undefined
       }
       expect(saveCache, 'cache was hit').to.have.been.calledOnceWithExactly(
         args

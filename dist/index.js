@@ -3091,7 +3091,6 @@ const getCacheParams = ({
   const platformAndArch = api.utils.getPlatformAndArch()
   core.debug(`platform and arch ${platformAndArch}`)
   const primaryKeySegments = [platformAndArch]
-  let restoreKeys
 
   let inputPaths = [npmCacheFolder]
   primaryKeySegments.unshift(useYarn ? 'yarn' : 'npm')
@@ -3103,13 +3102,15 @@ const getCacheParams = ({
       String(now.getMonth()),
       lockHash
     )
-    restoreKeys = [primaryKeySegments.join('-')]
   } else {
     primaryKeySegments.push(lockHash)
-    restoreKeys = [primaryKeySegments.join('-')]
   }
 
-  return { primaryKey: primaryKeySegments.join('-'), inputPaths, restoreKeys }
+  return {
+    primaryKey: primaryKeySegments.join('-'),
+    inputPaths,
+    restoreKeys: undefined
+  }
 }
 
 const installInOneFolder = ({
@@ -3122,7 +3123,9 @@ const installInOneFolder = ({
   core.debug(`working directory ${workingDirectory}`)
 
   const lockInfo = getLockFilename(usePackageLock)(workingDirectory)
-  const lockHash = hasha.fromFileSync(lockInfo.lockFilename)
+  const lockHash = hasha.fromFileSync(lockInfo.lockFilename, {
+    algorithm: 'md5'
+  })
   if (!lockHash) {
     throw new Error(
       `could not compute hash from file "${lockInfo.lockFilename}"`

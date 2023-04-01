@@ -13,3 +13,15 @@ before(() => {
 beforeEach(() => {
   global.sandbox.restore()
 })
+
+// restore npm cache directory setting changed in tests
+const core = require('@actions/core')
+const { execSync } = require('child_process')
+
+const cacheDir = execSync('npm config get cache')
+  .toString()
+  .split('\n')[0]
+
+after(() => {
+  core.exportVariable('npm_config_cache', cacheDir)
+})

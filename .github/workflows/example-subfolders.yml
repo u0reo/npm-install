@@ -9,9 +9,6 @@ jobs:
     name: Test on ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
-      # typically we would use a SHA or branch name
-      # of an action like
-      # - uses: bahmutov/npm-install@v1
       # but for internal testing, let's use the local action
       - uses: ./
         with:

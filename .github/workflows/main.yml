@@ -6,45 +6,47 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-20.04, windows-latest, macOS-latest]
+        os: [ubuntu-22.04, windows-latest, macOS-latest]
     name: Build and test on ${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
-      # caching NPM dependencies
-      # https://github.com/actions/cache/blob/master/examples.md#node---npm
-      - uses: actions/cache@v1
+      - name: Setup Node
+        uses: actions/setup-node@v3
         with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+          node-version-file: package.json
+          cache: npm
 
-      - run: node -v
       - run: npm ci
 
       # only makes sense to check code format on 1 OS
       - name: Linting 🧹
-        if: matrix.os == 'ubuntu-20.04'
+        if: matrix.os == 'ubuntu-22.04'
         run: npm run format:check
 
       - run: npm test
 
   release:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     name: release
     needs: build-and-test
     # only release from the master branch
-    if: github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/master' && github.repository_owner == 'bahmutov'
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: package.json
+          cache: npm
+
       - run: echo $GITHUB_SHA
 
       # trying to use this action to install dependencies for semantic release
-      - uses: bahmutov/npm-install@HEAD
+      - uses: ./
 
       # https://github.com/cycjimmy/semantic-release-action
       - name: Semantic Release

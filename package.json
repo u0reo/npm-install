@@ -63,5 +63,8 @@
     "action.yml",
     "index.js",
     "dist"
-  ]
+  ],
+  "volta": {
+    "node": "16.20.0"
+  }
 }

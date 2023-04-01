@@ -29,11 +29,13 @@ const getInputBool = (name, defaultValue = false) => {
 
 const restoreCachedNpm = (primaryKey, inputPath) => {
   console.log('trying to restore cached NPM modules')
+  console.log(`key: ${primaryKey}`)
+  console.log(`path: ${inputPath}`)
 
   return cache
     .restoreCache([inputPath], primaryKey)
     .then((cache) => {
-      console.log('npm cache hit', cache)
+      console.log(`npm cache hit: ${Boolean(cache)}`)
       return cache
     })
     .catch((e) => {
@@ -44,7 +46,7 @@ const restoreCachedNpm = (primaryKey, inputPath) => {
 }
 
 const saveCachedNpm = (primaryKey, inputPath) => {
-  console.log('saving NPM modules')
+  console.log('\nsaving NPM modules')
 
   return cache.saveCache([inputPath], primaryKey).catch((err) => {
     // don't throw an error if cache already exists, which may happen due to
@@ -213,6 +215,7 @@ const installInOneFolder = ({
         return
       }
 
+      console.log('\n')
       return api.utils.install(opts).then(() => {
         return api.utils.saveCachedNpm(PRIMARY_KEY, NPM_CACHE_FOLDER)
       })
@@ -239,12 +242,14 @@ const npmInstallAction = async () => {
   const installCommand = core.getInput('install-command')
 
   for (const workingDirectory of workingDirectories) {
+    console.log(`--- ${workingDirectory} ---`)
     await api.utils.installInOneFolder({
       usePackageLock,
       useRollingCache,
       workingDirectory,
       installCommand
     })
+    console.log('\n')
   }
 }
 

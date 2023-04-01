@@ -11,7 +11,7 @@ const cache = require('@actions/cache')
 const action = require('../index')
 const utils = action.utils
 
-const isWindows = os.platform().includes('win')
+const isWindows = os.platform().includes('win32')
 
 describe('action', () => {
   // by resolving we normalize the folder on Linux and Windows CI
@@ -180,7 +180,11 @@ describe('action', () => {
       await action.npmInstallAction()
       // caching based on the file package.json in the current working directory
       expect(restoreCache).to.have.been.calledOnceWithExactly({
-        inputPaths: ['/path/to/mock/cwd/node_modules'],
+        inputPaths: [
+          isWindows
+            ? 'D:\\path\\to\\mock\\cwd\\node_modules'
+            : '/path/to/mock/cwd/node_modules'
+        ],
         primaryKey: 'npm-platform-arch-hash-from-package-json',
         restoreKeys: ['npm-platform-arch-hash-from-package-json']
       })
@@ -198,7 +202,11 @@ describe('action', () => {
       await action.npmInstallAction()
       // caching based on the file package.json in the current working directory
       const cacheParams = {
-        inputPaths: ['/path/to/mock/cwd/node_modules'],
+        inputPaths: [
+          isWindows
+            ? 'D:\\path\\to\\mock\\cwd\\node_modules'
+            : '/path/to/mock/cwd/node_modules'
+        ],
         primaryKey: 'npm-platform-arch-hash-from-package-json',
         restoreKeys: ['npm-platform-arch-hash-from-package-json']
       }
@@ -258,7 +266,11 @@ describe('action', () => {
   context('with useRollingCache option enabled', function () {
     const pathToYarn = '/path/to/yarn'
     const yarnFilename = path.join(cwd, 'yarn.lock')
-    const yarnCachePaths = ['/path/to/mock/cwd/node_modules']
+    const yarnCachePaths = [
+      isWindows
+        ? 'D:\\path\\to\\mock\\cwd\\node_modules'
+        : '/path/to/mock/cwd/node_modules'
+    ]
     const cacheKey = 'yarn-platform-arch-2020-1-hash-from-yarn-lock-file'
 
     beforeEach(function () {
@@ -332,21 +344,17 @@ describe('action', () => {
         }
       )
 
-      const nonWindowsFailure = {
-        inputPaths: ['\\path\\to\\mock\\cwd\\node_modules'],
+      const args = {
+        inputPaths: [
+          isWindows
+            ? 'D:\\path\\to\\mock\\cwd\\node_modules'
+            : '/path/to/mock/cwd/node_modules'
+        ],
         primaryKey: 'npm-platform-arch-hash-from-package-json',
         restoreKeys: ['npm-platform-arch-hash-from-package-json']
       }
-      const windowsFailure = {
-        inputPaths: ['/path/to/mock/cwd/node_modules'],
-        primaryKey: 'npm-platform-arch-hash-from-package-json',
-        restoreKeys: ['npm-platform-arch-hash-from-package-json']
-      }
-      const arg = isWindows ? windowsFailure : nonWindowsFailure
-      // expect(saveCache, 'cache was hit').to.have.been.calledOnceWithExactly(arg)
-      // TODO figure out the CI and paths on different OS
-      expect(saveCache, 'cache was hit').to.have.been.calledOnceWith(
-        sandbox.match.object
+      expect(saveCache, 'cache was hit').to.have.been.calledOnceWithExactly(
+        args
       )
     })
 

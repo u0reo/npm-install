@@ -85,14 +85,6 @@ const install = (opts = {}) => {
 
   const shouldUseYarn = opts.useYarn
   const shouldUsePackageLock = opts.usePackageLock
-  const npmCacheFolder = opts.npmCacheFolder
-  if (!npmCacheFolder) {
-    console.error('passed opts %o', opts)
-    throw new Error('Missing npm cache folder to use')
-  }
-
-  // set the NPM cache config in case there is custom npm install command
-  core.exportVariable('npm_config_cache', npmCacheFolder)
 
   const options = {
     cwd: path.resolve(opts.workingDirectory)
@@ -164,22 +156,16 @@ const getLockFilename = usePackageLock => workingDirectory => {
 const getCacheParams = ({
   useYarn,
   useRollingCache,
-  homeDirectory,
   npmCacheFolder,
   lockHash
 }) => {
   const platformAndArch = api.utils.getPlatformAndArch()
   core.debug(`platform and arch ${platformAndArch}`)
   const primaryKeySegments = [platformAndArch]
-  let inputPaths, restoreKeys
+  let restoreKeys
 
-  if (useYarn) {
-    inputPaths = [path.join(homeDirectory, '.cache', 'yarn')]
-    primaryKeySegments.unshift('yarn')
-  } else {
-    inputPaths = [npmCacheFolder]
-    primaryKeySegments.unshift('npm')
-  }
+  let inputPaths = [npmCacheFolder]
+  primaryKeySegments.unshift(useYarn ? 'yarn' : 'npm')
 
   if (useRollingCache) {
     const now = api.utils.getNow()
@@ -219,13 +205,10 @@ const installInOneFolder = ({
   core.debug(`lock filename ${lockInfo.lockFilename}`)
   core.debug(`file hash ${lockHash}`)
 
-  // enforce the same NPM cache folder across different operating systems
-  const homeDirectory = os.homedir()
-  const NPM_CACHE_FOLDER = path.join(homeDirectory, '.npm')
+  const NPM_CACHE_FOLDER = path.join(workingDirectory, 'node_modules')
 
   const NPM_CACHE = getCacheParams({
     useYarn: lockInfo.useYarn,
-    homeDirectory,
     useRollingCache,
     npmCacheFolder: NPM_CACHE_FOLDER,
     lockHash
@@ -240,11 +223,11 @@ const installInOneFolder = ({
   }
 
   return api.utils.restoreCachedNpm(NPM_CACHE).then(npmCacheHit => {
-    return api.utils.install(opts).then(() => {
-      if (npmCacheHit) {
-        return
-      }
+    if (npmCacheHit) {
+      return
+    }
 
+    return api.utils.install(opts).then(() => {
       return api.utils.saveCachedNpm(NPM_CACHE)
     })
   })

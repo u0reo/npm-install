@@ -205,11 +205,11 @@ describe('action', () => {
       const saveCache = sandbox.stub(utils, 'saveCachedNpm')
       await action.npmInstallAction()
       // caching based on the file package.json in the current working directory
-      expect(restoreCache).to.have.been.calledOnceWithExactly({
-        inputPaths: [path.join(homedir, '.npm')],
-        primaryKey: 'npm-platform-arch-hash-from-package-json',
-        restoreKeys: ['npm-platform-arch-hash-from-package-json']
-      })
+      expect(restoreCache).to.have.been.calledOnceWithExactly(
+        path.join(homedir, '.npm'),
+        'npm-platform-arch-hash-from-package-json',
+        ['npm-platform-arch-hash-from-package-json']
+      )
 
       expect(this.exec).to.have.been.calledOnceWithExactly(
         quote(pathToNpm),
@@ -230,12 +230,11 @@ describe('action', () => {
       const saveCache = sandbox.stub(utils, 'saveCachedNpm')
       await action.npmInstallAction()
       // caching based on the file package.json in the current working directory
-      const cacheParams = {
-        inputPaths: [path.join(homedir, '.npm')],
-        primaryKey: 'npm-platform-arch-hash-from-package-json',
-        restoreKeys: ['npm-platform-arch-hash-from-package-json']
-      }
-      expect(restoreCache).to.have.been.calledOnceWithExactly(cacheParams)
+      expect(restoreCache).to.have.been.calledOnceWithExactly(
+        path.join(homedir, '.npm'),
+        'npm-platform-arch-hash-from-package-json',
+        ['npm-platform-arch-hash-from-package-json']
+      )
 
       expect(this.exec).to.have.been.calledOnceWithExactly(
         quote(pathToNpm),
@@ -248,7 +247,10 @@ describe('action', () => {
       expect(
         saveCache,
         'new cache needs to be saved'
-      ).to.have.been.calledOnceWithExactly(cacheParams)
+      ).to.have.been.calledOnceWithExactly(
+        path.join(homedir, '.npm'),
+        'npm-platform-arch-hash-from-package-json'
+      )
     })
   })
 
@@ -394,7 +396,8 @@ describe('action', () => {
       // expect(saveCache, 'cache was hit').to.have.been.calledOnceWithExactly(arg)
       // TODO figure out the CI and paths on different OS
       expect(saveCache, 'cache was hit').to.have.been.calledOnceWith(
-        sandbox.match.object
+        sandbox.match.string,
+        sandbox.match.string
       )
     })
 
